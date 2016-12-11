@@ -1,0 +1,35 @@
+{
+    "author": "Iota",
+    "dependencies": {},
+    "keywords": [],
+    "name": "hello-watch",
+    "pebble": {
+        "capabilities": [
+            "location",
+            "configurable"
+        ],
+        "displayName": "Hello Watch",
+        "enableMultiJS": true,
+        "messageKeys": {
+            "JSReady": 3,
+            "KEY_CONDITIONS": 1,
+            "KEY_GIMMEDATA": 4,
+            "KEY_SHAREPRICE": 2,
+            "KEY_TEMPERATURE": 0
+        },
+        "projectType": "native",
+        "resources": {
+            "media": []
+        },
+        "sdkVersion": "3",
+        "targetPlatforms": [
+            "aplite",
+            "basalt"
+        ],
+        "uuid": "1c44d993-f3b4-43ef-a27b-0f0cd615208a",
+        "watchapp": {
+            "watchface": true
+        }
+    },
+    "version": "1.0.0"
+}
