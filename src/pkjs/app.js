@@ -3,7 +3,7 @@ Pebble.addEventListener('appmessage',
   function(e) {
     console.log("AppMessage received!");
     getWeather();
-    stockCheck('NYSE:WDAY');
+    stockCheck('NASDAQ:WDAY');
   }                     
 );
 
@@ -17,7 +17,7 @@ var xhrRequest = function (url, type, callback) {
 };
 
 function stockCheck(symbol) {
-  var url = "http://finance.google.com/finance/info?q="+symbol;
+  var url = "http://finance.google.com/finance?q="+symbol+"&output=json";
   
   xhrRequest(url, 'GET',
             function(response) {
@@ -92,7 +92,7 @@ function getWeather() {
   );
 }
 
-stockCheck('NYSE:WDAY');
+stockCheck('NASDAQ:WDAY');
 // Listen for when the watchface is opened
 Pebble.addEventListener('ready', 
    function() { 

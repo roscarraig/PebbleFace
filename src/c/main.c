@@ -13,6 +13,7 @@ static TextLayer *s_battery_layer;
 static TextLayer *s_bluetooth_layer;
 static TextLayer *s_debug_layer;
 static TextLayer *s_share_layer;
+static TextLayer *s_step_layer;
 static TextLayer *s_hometime_layer;
 static TextLayer *s_tz_layer;
 int first_run = 1;
@@ -31,13 +32,52 @@ static void update_date(struct tm *tt) {
   text_layer_set_text(s_tz_layer, tzbuffer);
 }
 
+int store_int (char *buff, int percentage) {
+  int t = percentage;
+  int s = 0;
+  if (percentage == 0) {
+    buff[0] = '0';
+    return (1);
+  }
+  for (s = 0 ; t > 0 ; s++)
+    t /= 10;
+  for (t = s ; t > 0 ; ) {
+    buff[--t] = (percentage % 10) + '0';
+    percentage /= 10;
+  }
+  return (s);
+}
+
+static void step_up() {
+  static char steps[] = "No steps";
+  
+#if defined(PBL_HEALTH)
+  // Use the step count metric
+  HealthMetric metric = HealthMetricStepCount;
+
+  // Create timestamps for midnight (the start time) and now (the end time)
+  time_t start = time_start_of_today();
+  time_t end = time(NULL);
+
+  // Check step data is available
+  HealthServiceAccessibilityMask mask = health_service_metric_accessible(metric, 
+                                                                    start, end);
+  if (mask & HealthServiceAccessibilityMaskAvailable)
+  {
+    snprintf(steps, sizeof(steps), "%d", (int)health_service_sum_today(metric));
+  }
+#endif
+  
+  text_layer_set_text(s_step_layer, steps);
+}
+
 bool comm_is_js_ready() {
   return s_js_ready;
 }
 
 static void update_time() {
   // Get a tm structure
-  time_t temp = time(NULL); 
+  time_t temp = time(NULL);
   struct tm *tick_time = localtime(&temp);
   struct tm *home_time = gmtime(&temp);
   
@@ -84,6 +124,10 @@ static void update_time() {
   // Display this time on the TextLayer
   text_layer_set_text(s_time_layer, buffer2);
   text_layer_set_text(s_hometime_layer, htbuffer);
+  if (first_run || (tick_time->tm_min % 5 == 0))
+      {
+        step_up();
+      }
 }
 static void debug_text(char *text) {
   text_layer_set_text(s_debug_layer, text);
@@ -91,6 +135,11 @@ static void debug_text(char *text) {
 static void share_price(char *text) {
   text_layer_set_text(s_share_layer, text);
 }
+
+static void step_count(char * text) {
+  text_layer_set_text(s_step_layer, text);
+}
+
 static void update_bluetooth(bool connected) {
   
   if (connected) {
@@ -108,21 +157,6 @@ static void update_bluetooth(bool connected) {
   }
 }
 
-int store_int (char *buff, int percentage) {
-  int t = percentage;
-  int s = 0;
-  if (percentage == 0) {
-    buff[0] = '0';
-    return (1);
-  }
-  for (s = 0 ; t > 0 ; s++)
-    t /= 10;
-  for (t = s ; t > 0 ; ) {
-    buff[--t] = (percentage % 10) + '0';
-    percentage /= 10;
-  }
-  return (s);
-}
 static void update_battery(BatteryChargeState b) {
   static char buffer[5] = "---%";
   int pos = store_int (buffer, b.charge_percent);
@@ -150,26 +184,29 @@ static void main_window_load(Window *window) {
   s_battery_layer = text_layer_create(GRect(108, 144, 36,32));
   s_bluetooth_layer = text_layer_create(GRect(0, 144, 36, 32));
   s_debug_layer = text_layer_create(GRect(0, 104, 144, 44));
-  s_share_layer = text_layer_create(GRect(0, 32, 144, 32));
-  s_hometime_layer = text_layer_create(GRect(0, 55, 16, 50));
+  s_step_layer = text_layer_create(GRect(0, 32, 72, 32));
+  s_share_layer = text_layer_create(GRect(72, 32, 72, 32));
+  s_hometime_layer = text_layer_create(GRect(0, 64, 16, 50));
   s_tz_layer = text_layer_create(GRect(36, 144, 72, 32));
   
   text_layer_set_background_color(s_time_layer, GColorBlack);
   text_layer_set_background_color(s_date_left_layer, GColorBlack);
   text_layer_set_background_color(s_date_right_layer, GColorBlack);
   text_layer_set_background_color(s_debug_layer, GColorBlack);
+  text_layer_set_background_color(s_step_layer, GColorBlack);
   text_layer_set_background_color(s_share_layer, GColorBlack);
   text_layer_set_background_color(s_battery_layer, GColorBlack);
   text_layer_set_background_color(s_bluetooth_layer, GColorBlack);
   text_layer_set_background_color(s_hometime_layer, GColorBlack);
   text_layer_set_background_color(s_tz_layer, GColorBlack);
   text_layer_set_text_color(s_tz_layer, GColorWhite);
-  text_layer_set_text_color(s_time_layer, GColorWhite);
+  text_layer_set_text_color(s_time_layer, GColorYellow);
   text_layer_set_text_color(s_debug_layer, GColorWhite);
   text_layer_set_text_color(s_battery_layer, GColorWhite);
-  text_layer_set_text_color(s_date_left_layer, GColorWhite);
+  text_layer_set_text_color(s_date_left_layer, GColorInchworm);
   text_layer_set_text_color(s_date_right_layer, GColorWhite);
   text_layer_set_text_color(s_debug_layer, GColorWhite);
+  text_layer_set_text_color(s_step_layer, GColorCeleste);
   text_layer_set_text_color(s_share_layer, GColorWhite);
   text_layer_set_text_color(s_bluetooth_layer, GColorWhite);
   text_layer_set_text_color(s_hometime_layer, GColorWhite);
@@ -193,8 +230,10 @@ static void main_window_load(Window *window) {
   text_layer_set_text_alignment(s_bluetooth_layer, GTextAlignmentLeft);
   text_layer_set_font(s_debug_layer, fonts_get_system_font(FONT_KEY_GOTHIC_18));
   text_layer_set_text_alignment(s_debug_layer, GTextAlignmentCenter);
+  text_layer_set_font(s_step_layer, fonts_get_system_font(FONT_KEY_GOTHIC_24));
+  text_layer_set_text_alignment(s_step_layer, GTextAlignmentLeft);
   text_layer_set_font(s_share_layer, fonts_get_system_font(FONT_KEY_GOTHIC_24));
-  text_layer_set_text_alignment(s_share_layer, GTextAlignmentCenter);
+  text_layer_set_text_alignment(s_share_layer, GTextAlignmentRight);
   text_layer_set_font(s_hometime_layer, fonts_get_system_font(FONT_KEY_GOTHIC_18));
   text_layer_set_text_alignment(s_hometime_layer, GTextAlignmentCenter);
   text_layer_set_font(s_tz_layer, fonts_get_system_font(FONT_KEY_GOTHIC_18));
@@ -206,6 +245,7 @@ static void main_window_load(Window *window) {
   layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_debug_layer));
   layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_bluetooth_layer));
   layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_battery_layer));
+  layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_step_layer));
   layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_share_layer));
   layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_hometime_layer));
 }
@@ -218,6 +258,7 @@ static void main_window_unload(Window *window) {
   text_layer_destroy(s_battery_layer);
   text_layer_destroy(s_bluetooth_layer);
   text_layer_destroy(s_debug_layer);
+  text_layer_destroy(s_step_layer);
   text_layer_destroy(s_share_layer);
   text_layer_destroy(s_hometime_layer);
 }
