@@ -14,7 +14,7 @@ static TextLayer *s_bluetooth_layer;
 static TextLayer *s_debug_layer;
 static TextLayer *s_share_layer;
 static TextLayer *s_step_layer;
-static TextLayer *s_hometime_layer;
+// static TextLayer *s_hometime_layer;
 static TextLayer *s_tz_layer;
 int first_run = 1;
 static bool s_js_ready;
@@ -79,12 +79,12 @@ static void update_time() {
   // Get a tm structure
   time_t temp = time(NULL);
   struct tm *tick_time = localtime(&temp);
-  struct tm *home_time = gmtime(&temp);
+  // struct tm *home_time = gmtime(&temp);
   
-  if (tick_time->tm_isdst)
-  {
-    home_time->tm_hour = (home_time->tm_hour + 1) % 24;
-  }
+  // if (tick_time->tm_isdst)
+  // {
+  //  home_time->tm_hour = (home_time->tm_hour + 1) % 24;
+  // }
 
   if (first_run || (tick_time->tm_min == 0))
   {
@@ -93,17 +93,17 @@ static void update_time() {
   }
   // Create a long-lived buffer
   static char buffer2[] = "00:00 ";
-  static char htbuffer[] = "\n00";
+  // static char htbuffer[] = "\n00";
   
   // Write the current hours and minutes into the buffer
   if(clock_is_24h_style() == true) {
     // Use 24 hour format
     strftime(buffer2, sizeof("00:00"), "%H:%M ", tick_time);
-    strftime(htbuffer, sizeof(htbuffer), "\n%H", home_time);
+    // strftime(htbuffer, sizeof(htbuffer), "\n%H", home_time);
   } else {
     // Use 12 hour format
     strftime(buffer2, sizeof("00:00"), "%I:%M ", tick_time);
-    strftime(htbuffer, sizeof(htbuffer), "\n%I", home_time);
+    // strftime(htbuffer, sizeof(htbuffer), "\n%I", home_time);
   }
   if (tick_time->tm_min % 30 == 0) {
     // Begin dictionary
@@ -123,7 +123,7 @@ static void update_time() {
 
   // Display this time on the TextLayer
   text_layer_set_text(s_time_layer, buffer2);
-  text_layer_set_text(s_hometime_layer, htbuffer);
+  // text_layer_set_text(s_hometime_layer, htbuffer);
   if (first_run || (tick_time->tm_min % 5 == 0))
       {
         step_up();
@@ -133,7 +133,8 @@ static void debug_text(char *text) {
   text_layer_set_text(s_debug_layer, text);
 }
 static void share_price(char *text) {
-  text_layer_set_text(s_share_layer, text);
+  if (strlen(text) > 0)
+    text_layer_set_text(s_share_layer, text);
 }
 
 static void step_count(char * text) {
@@ -180,13 +181,13 @@ static void main_window_load(Window *window) {
   // Create time TextLayer
   s_date_left_layer = text_layer_create(GRect(0, 0, 72, 32));
   s_date_right_layer = text_layer_create(GRect(72, 0, 72, 32));
-  s_time_layer = text_layer_create(GRect(16, 55, 128, 50));
+  s_time_layer = text_layer_create(GRect(0, 55, 144, 50));
   s_battery_layer = text_layer_create(GRect(108, 144, 36,32));
   s_bluetooth_layer = text_layer_create(GRect(0, 144, 36, 32));
   s_debug_layer = text_layer_create(GRect(0, 104, 144, 44));
   s_step_layer = text_layer_create(GRect(0, 32, 72, 32));
   s_share_layer = text_layer_create(GRect(72, 32, 72, 32));
-  s_hometime_layer = text_layer_create(GRect(0, 64, 16, 50));
+  // s_hometime_layer = text_layer_create(GRect(0, 64, 16, 50));
   s_tz_layer = text_layer_create(GRect(36, 144, 72, 32));
   
   text_layer_set_background_color(s_time_layer, GColorBlack);
@@ -197,7 +198,7 @@ static void main_window_load(Window *window) {
   text_layer_set_background_color(s_share_layer, GColorBlack);
   text_layer_set_background_color(s_battery_layer, GColorBlack);
   text_layer_set_background_color(s_bluetooth_layer, GColorBlack);
-  text_layer_set_background_color(s_hometime_layer, GColorBlack);
+  // text_layer_set_background_color(s_hometime_layer, GColorBlack);
   text_layer_set_background_color(s_tz_layer, GColorBlack);
   text_layer_set_text_color(s_tz_layer, GColorWhite);
   text_layer_set_text_color(s_time_layer, GColorYellow);
@@ -209,7 +210,7 @@ static void main_window_load(Window *window) {
   text_layer_set_text_color(s_step_layer, GColorCeleste);
   text_layer_set_text_color(s_share_layer, GColorWhite);
   text_layer_set_text_color(s_bluetooth_layer, GColorWhite);
-  text_layer_set_text_color(s_hometime_layer, GColorWhite);
+  // text_layer_set_text_color(s_hometime_layer, GColorWhite);
 
   // Make sure the time is displayed from the start
   update_time();
@@ -234,8 +235,8 @@ static void main_window_load(Window *window) {
   text_layer_set_text_alignment(s_step_layer, GTextAlignmentLeft);
   text_layer_set_font(s_share_layer, fonts_get_system_font(FONT_KEY_GOTHIC_24));
   text_layer_set_text_alignment(s_share_layer, GTextAlignmentRight);
-  text_layer_set_font(s_hometime_layer, fonts_get_system_font(FONT_KEY_GOTHIC_18));
-  text_layer_set_text_alignment(s_hometime_layer, GTextAlignmentCenter);
+  // text_layer_set_font(s_hometime_layer, fonts_get_system_font(FONT_KEY_GOTHIC_18));
+  // text_layer_set_text_alignment(s_hometime_layer, GTextAlignmentCenter);
   text_layer_set_font(s_tz_layer, fonts_get_system_font(FONT_KEY_GOTHIC_18));
   text_layer_set_text_alignment(s_tz_layer, GTextAlignmentCenter);
   layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_tz_layer));
@@ -247,7 +248,7 @@ static void main_window_load(Window *window) {
   layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_battery_layer));
   layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_step_layer));
   layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_share_layer));
-  layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_hometime_layer));
+  // layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_hometime_layer));
 }
 
 static void main_window_unload(Window *window) {
@@ -260,7 +261,7 @@ static void main_window_unload(Window *window) {
   text_layer_destroy(s_debug_layer);
   text_layer_destroy(s_step_layer);
   text_layer_destroy(s_share_layer);
-  text_layer_destroy(s_hometime_layer);
+  // text_layer_destroy(s_hometime_layer);
 }
 
 static void inbox_dropped_callback(AppMessageResult reason, void *context) {
