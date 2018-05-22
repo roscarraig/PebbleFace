@@ -3,7 +3,7 @@ Pebble.addEventListener('appmessage',
   function(e) {
     console.log("AppMessage received!");
     getWeather();
-    stockCheck('NASDAQ:WDAY');
+    stockCheck('WDAY');
   }                     
 );
 
@@ -16,11 +16,38 @@ var xhrRequest = function (url, type, callback) {
   xhr.send();
 };
 
-function stockCheck(symbol) {
+function iexStockCheck(symbol) {
+  var url = "https://api.iextrading.com/1.0/stock/"+symbol+"/price";
+  
+  xhrRequest(url, 'GET',
+    function(response) {
+      var price = response;
+      
+      if(price=="Unknown symbol")
+        price = "---";
+      
+      console.log(symbol+"="+price);
+      
+      
+      var dictionary = {
+        "KEY_SHAREPRICE" : price
+      };
+      Pebble.sendAppMessage(dictionary,
+                function(e) {
+                  console.log("Share info sent to Pebble successfully!");
+                },
+                function(e) {
+                  console.log("Error sending share info to Pebble!");
+                }
+             );
+           });
+}
+
+function googleStockCheck(symbol) {
   var url = "http://finance.google.com/finance?q="+symbol+"&output=json";
   
   xhrRequest(url, 'GET',
-            function(response) {
+          function(response) {
               console.log(response.slice(3));
               var json = JSON.parse(response.slice(3));
               var price = json[0].l;
@@ -37,6 +64,10 @@ function stockCheck(symbol) {
                 }
               );
             });
+}
+
+function stockCheck(symbol) {
+  iexStockCheck(symbol);
 }
 
 function locationSuccess(pos) {
@@ -92,7 +123,7 @@ function getWeather() {
   );
 }
 
-stockCheck('NASDAQ:WDAY');
+stockCheck('WDAY');
 // Listen for when the watchface is opened
 Pebble.addEventListener('ready', 
    function() { 
@@ -101,6 +132,6 @@ Pebble.addEventListener('ready',
 
     // Get the initial weather
     getWeather();
-    stockCheck('NYSE:WDAY');
+    stockCheck('WDAY');
   }
 );
