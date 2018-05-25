@@ -287,7 +287,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     s_js_ready = true;
   }
   Tuple *t = dict_read_first(iterator);
-  static char buffer[32], temp[8], cond[24], shareprice[8];
+  static char buffer[32], temp[8], cond[24], shareprice[20];
   APP_LOG(APP_LOG_LEVEL_INFO, "Inbox Callback Pinged");
   Tuple *item = dict_find(iterator, KEY_SHAREPRICE);
   if (item) {
